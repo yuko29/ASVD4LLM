@@ -4,6 +4,7 @@ import torch.nn as nn
 from evaluate import evaluate_model, evaluate_perplexity
 from modules.svd_linear import SVDLinear
 from tqdm import tqdm
+import json
 
 
 def binary_search_truncation_rank(model, sensitivity_dict, calib_loader, args):
@@ -82,7 +83,13 @@ def binary_search_truncation_rank(model, sensitivity_dict, calib_loader, args):
     layers_min_ratio = {layername: 1 for layername in sensitivity_dict.keys()}
     for layername, ratio, ppl in sorted_sensitive_list[mid:]:
         layers_min_ratio[layername] = min(layers_min_ratio[layername], ratio)
-    for layername, ratio in tqdm(layers_min_ratio.items()):
+        
+    # Dump min ratio
+    # with open("layers_min_ratio_75.json", "w") as f:
+    #     json.dump(layers_min_ratio, f)
+    
+    for layername, ratio in layers_min_ratio.items():
+        print(layername, end=" ")
         # set ratio
         raw_linear = module_dict[layername]
         info = linear_info[raw_linear]
@@ -94,3 +101,5 @@ def binary_search_truncation_rank(model, sensitivity_dict, calib_loader, args):
             sigma_fuse=args.sigma_fuse,
         )
         setattr(info["father"], info["name"], svd_linear)
+
+# CUDA_VISIBLE_DEVICES=1 python asvd.py --model_id="meta-llama/Llama-2-7b-hf" --act_aware --alpha 0.5 --n_calib_samples 32 --scaling_method abs_mean --param_ratio_target 0.9 --use_cache

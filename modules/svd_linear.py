@@ -35,11 +35,13 @@ class SVDLinear(nn.Module):
         sigma_fuse="UV"
     ):
         if param_ratio >= 1:
+            print(4096)
             return linear
         n_params = linear.weight.numel()
         compressed_params = int(n_params * param_ratio)
         assert ic_split == 1 or oc_split == 1
         rank = compressed_params // (linear.in_features + linear.out_features)
+        print(rank)
         # print("rank", rank)
         w = linear.weight.data.float()
         if act_aware:
